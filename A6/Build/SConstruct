@@ -1,0 +1,58 @@
+
+from os import listdir
+from os.path import isfile, join, abspath
+
+common_env = Environment()
+common_env.Append(CXXFLAGS = '-std=c++14 -Wall -g -O0')
+
+def sources (d):
+	return [abspath(join(d, f)) for f in listdir(d) if isfile(join(d, f)) and f[-3:] == '.cc']
+
+catalogSrc = sources ('../Main/Catalog/source')
+bufferSrc = sources ('../Main/BufferMgr/source')
+recordSrc = sources ('../Main/Record/source')
+tableSrc = sources ('../Main/DatabaseTable/source')
+relOpSrc = sources ('../Main/RelOps/source')
+allSrc = [tableSrc, recordSrc, catalogSrc, bufferSrc, relOpSrc]
+
+# NOTE: do not put quotes around these!  SCons scans these directories to
+# work out which headers each source file depends on, and a quoted path
+# names a directory that does not exist -- the build still works, but
+# nothing is ever rebuilt when you edit a header
+header_paths = Split("""
+	../Main/Catalog/headers
+	../Main/BufferMgr/headers
+	../Main/Qunit/headers
+	../Main/Record/headers
+	../Main/DatabaseTable/headers
+	../Main/RelOps/headers
+	../Main/RelOpTest/headers
+""")
+
+common_env.Append(CPPPATH = header_paths)
+
+print("""
+What do you want to build/clean?\n
+1. Relational-operator unit tests (my tests, RelOpQUnit.cc)
+2. Stage 1 tests (yours, StudentQUnitStage1.cc: RegularSelection)
+3. Stage 2 tests (yours, StudentQUnitStage2.cc: BPlusSelection)
+4. Stage 3 tests (yours, StudentQUnitStage3.cc: SortMergeJoin)
+5. Stage 4 tests (yours, StudentQUnitStage4.cc: Aggregate)
+
+Add a "c" to build with clang++, as on Clear: for example, 2c
+""")
+
+ans = input("Select the module you want to build or clean. ").strip()
+
+if ans.endswith("c"):
+	common_env.Replace(CXX = "clang++")
+	ans = ans[:-1]
+
+if ans == "1":
+	print("\nOK, building the relational-operator unit tests.")
+	common_env.Program ('bin/relOpUnitTest', ['../Main/RelOpTest/source/RelOpQUnit.cc'] + allSrc)
+
+for stage in ("1", "2", "3", "4"):
+	if ans == str (1 + int (stage)):
+		print("\nOK, building your Stage " + stage + " tests.")
+		common_env.Program ('bin/studentUnitTestStage' + stage, ['../Main/RelOpTest/source/StudentQUnitStage' + stage + '.cc'] + allSrc)
