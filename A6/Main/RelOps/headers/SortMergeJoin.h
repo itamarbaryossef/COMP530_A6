@@ -13,7 +13,7 @@
 class SortMergeJoin {
 
 public:
-	// This creates a sort merge join of the tables maanged by leftInput and rightInput.
+	// This creates a sort merge join of the tables manged by leftInput and rightInput.
 	//
 	// The string finalSelectionPredicate encodes the predicate over record from
 	// the table managed by the variable output; only records for which this predicate
@@ -24,7 +24,7 @@ public:
 	// rightSelectionPredicate) does not evaluate to true.  
 	//
 	// Next, the pair equalityCheck encodes a pair of computations, taken from the 
-	// predicte finalSelectionPredicate, that must match from the left and the right 
+	// predicate finalSelectionPredicate, that must match from the left and the right 
 	// records, in order for the final record to be accepted by the predicate.
 	// Basically, to run the join, you sort the left relation using equalityCheck.first.
 	// You sort the right relation using equalityCheck.second.  Then you merge them
