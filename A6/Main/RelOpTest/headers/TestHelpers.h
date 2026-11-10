@@ -72,6 +72,17 @@ inline MyDB_SchemaPtr twoStrings (string first, string second) {
 	return s;
 }
 
+// projections that copy every attribute of the supplier schema with the
+// given prefix, in schema order ("[s_suppkey]", "[s_name]", ...)
+inline vector <string> supplierProjections (string prefix = "") {
+	// keep the schema alive: getAtts () returns a reference into it
+	MyDB_SchemaPtr s = supplierSchema (prefix);
+	vector <string> p;
+	for (auto &a : s->getAtts ())
+		p.push_back ("[" + a.first + "]");
+	return p;
+}
+
 /*************************************************/
 /** making tables                               **/
 /*************************************************/
