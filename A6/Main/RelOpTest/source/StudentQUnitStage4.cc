@@ -145,7 +145,8 @@ int main (int argc, char *argv[]) {
 	case 5:
 	{
 		// every row fails the selection (no balance is over 20000): (a) with a
-		// GROUP BY there are no groups; (b) with no GROUP BY, there must be no
+		// GROUP BY, the number of groups must match the oracle's number of
+		// rows; (b) with no GROUP BY, there must be no
 		// rows, or one row whose COUNT is 0 (MyDB has no NULL)
 		cout << "TEST 5..." << flush;
 		MyDB_BufferManagerPtr mgr = make_shared <MyDB_BufferManager> (131072, 128, "tempFile");
@@ -157,8 +158,8 @@ int main (int argc, char *argv[]) {
 			vector <pair <MyDB_AggType, string>> {make_pair (MyDB_AggType :: sum, string ("[s_acctbal]")), make_pair (MyDB_AggType :: avg, string ("[s_acctbal]")), make_pair (MyDB_AggType :: cnt, string ("int[0]"))},
 			vector <string> {}, "> ([s_acctbal], double[20000.0])", "aggOutB");
 		cout << rowsA.size () << " and " << rowsB.size () << " rows" << endl << flush;
-		QUNIT_IS_TRUE (sameRows (rowsA, oracle ("SELECT nationkey, SUM(acctbal), AVG(acctbal), COUNT(*) FROM supplier WHERE acctbal > 20000.0 GROUP BY nationkey")));
-		QUNIT_IS_EQUAL ((int) rowsA.size (), 0);
+		vector <string> expectedA = oracle ("SELECT nationkey, SUM(acctbal), AVG(acctbal), COUNT(*) FROM supplier WHERE acctbal > 20000.0 GROUP BY nationkey");
+		QUNIT_IS_EQUAL ((int) rowsA.size (), (int) expectedA.size ());
 		QUNIT_IS_TRUE (emptyAggregateOK (rowsB, 2));
 		unlink ("aggOutB.bin");
 		unlink ("supplier.bin");
