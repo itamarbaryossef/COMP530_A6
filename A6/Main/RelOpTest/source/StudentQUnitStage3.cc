@@ -641,23 +641,27 @@ int main (int argc, char *argv[]) {
 
 	case 24:
 	{
-		// a self-join, with the same table object as both inputs: likes with
-		// itself on the beer.  By hand: PBR gives Homer and Marge twice each
-		// (2 x 2), Coors gives Homer, Duff gives Lenny
+		// a self-join of the same data: likes with itself on the beer, as two
+		// tables with different attribute names (a_ and b_), so that every
+		// attribute name in the combined record is unambiguous.  By hand: PBR
+		// gives Homer and Marge twice each (2 x 2), Coors gives Homer, Duff
+		// gives Lenny
 		cout << "TEST 24..." << flush;
 		MyDB_BufferManagerPtr mgr = make_shared <MyDB_BufferManager> (131072, 128, "tempFile");
-		MyDB_TableReaderWriterPtr likes = loadTable (mgr, "likes", twoStrings ("l_dr", "l_beer"), "likes.tbl");
-		JoinSpec spec {"== ([l_beer], [l_beer])",
-			vector <string> {"[l_dr]"},
-			make_pair (string ("[l_beer]"), string ("[l_beer]")),
+		MyDB_TableReaderWriterPtr likesA = loadTable (mgr, "likesA", twoStrings ("a_dr", "a_beer"), "likes.tbl");
+		MyDB_TableReaderWriterPtr likesB = loadTable (mgr, "likesB", twoStrings ("b_dr", "b_beer"), "likes.tbl");
+		JoinSpec spec {"== ([a_beer], [b_beer])",
+			vector <string> {"[a_dr]"},
+			make_pair (string ("[a_beer]"), string ("[b_beer]")),
 			"bool[true]", "bool[true]"};
-		vector <string> rows = runSortMergeJoin (mgr, likes, likes, spec);
-		vector <string> scan = runScanJoin (mgr, likes, likes, spec);
+		vector <string> rows = runSortMergeJoin (mgr, likesA, likesB, spec);
+		vector <string> scan = runScanJoin (mgr, likesA, likesB, spec);
 		cout << rows.size () << " rows (ScanJoin: " << scan.size () << ")" << endl << flush;
 		QUNIT_IS_TRUE (rows == (vector <string> {"Homer|", "Homer|", "Homer|", "Lenny|", "Marge|", "Marge|"}));
 		QUNIT_IS_TRUE (sameRows (rows, scan));
 		QUNIT_IS_TRUE (sameRows (rows, oracle ("SELECT a.dr FROM likes a, likes b WHERE a.beer = b.beer")));
-		unlink ("likes.bin");
+		unlink ("likesA.bin");
+		unlink ("likesB.bin");
 		unlink ("smjOut.bin");
 		unlink ("scanOut.bin");
 	}
